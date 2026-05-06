@@ -10,6 +10,9 @@ const TOOLS = {
   allocate:   () => import("./tools/allocate.js?v=2"),
   option43:   () => import("./tools/option43.js?v=2"),
   aruba_dhcp: () => import("./tools/aruba_dhcp.js"),
+  tree:       () => import("./tools/tree.js"),
+  diffs:      () => import("./tools/diffs.js"),
+  routes:     () => import("./tools/routes.js"),
 };
 
 const DEFAULT_TOOL = "calc";
