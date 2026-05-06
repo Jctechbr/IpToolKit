@@ -13,6 +13,9 @@ const TOOLS = {
   tree:       () => import("./tools/tree.js"),
   diffs:      () => import("./tools/diffs.js"),
   routes:     () => import("./tools/routes.js"),
+  planner:    () => import("./tools/planner.js"),
+  patterns:   () => import("./tools/patterns.js"),
+  practice:   () => import("./tools/practice.js"),
 };
 
 const DEFAULT_TOOL = "calc";
