@@ -1,7 +1,7 @@
 services:
   iptoolkit:
     build:
-      context: /home/ironman/IpToolBox
+      context: /home/ironman/IpToolKit
       dockerfile: Dockerfile
     image: iptoolkit:latest
     restart: unless-stopped
