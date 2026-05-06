@@ -1,0 +1,114 @@
+/* SLDS-inspired design token system */
+
+:root {
+  /* Brand */
+  --brand-primary: #0066cc;
+  --brand-primary-dark: #0052a3;
+  --brand-primary-light: #e6f0ff;
+
+  /* Backgrounds */
+  --bg-base: #f4f6f9;
+  --bg-alt: #edf1f7;
+  --surface: #ffffff;
+  --surface-alt: #f8fafc;
+
+  /* Text */
+  --text-primary: #1a1a2e;
+  --text-secondary: #445269;
+  --text-tertiary: #6b7a99;
+  --text-inverse: #ffffff;
+  --text-link: #0066cc;
+
+  /* Borders */
+  --border: #c8d4e8;
+  --border-subtle: #dde5f0;
+  --border-strong: #99aec8;
+
+  /* Semantic colours */
+  --success: #1a7f4b;
+  --success-bg: #e8f8f0;
+  --success-border: #a3d9be;
+
+  --warning: #7a4f00;
+  --warning-bg: #fff8e6;
+  --warning-border: #f5cc66;
+
+  --error: #c0392b;
+  --error-bg: #fdf0ee;
+  --error-border: #f0a09a;
+
+  --info: #0055aa;
+  --info-bg: #e6f0ff;
+  --info-border: #99c0f0;
+
+  /* Interactive */
+  --focus-ring: 0 0 0 3px rgba(0, 102, 204, 0.35);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 3px 8px rgba(0, 0, 0, 0.10);
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+
+  /* Typography */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --text-sm: 0.8125rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 9999px;
+
+  /* Transitions */
+  --transition: 150ms ease;
+}
+
+[data-theme="dark"] {
+  --brand-primary: #4da3ff;
+  --brand-primary-dark: #7abbff;
+  --brand-primary-light: #0a1f3d;
+
+  --bg-base: #0d1117;
+  --bg-alt: #161b22;
+  --surface: #1c2128;
+  --surface-alt: #21262d;
+
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-tertiary: #6e7681;
+  --text-inverse: #0d1117;
+  --text-link: #4da3ff;
+
+  --border: #30363d;
+  --border-subtle: #21262d;
+  --border-strong: #484f58;
+
+  --success: #3fb950;
+  --success-bg: #0d2a18;
+  --success-border: #2a5e37;
+
+  --warning: #d29922;
+  --warning-bg: #272115;
+  --warning-border: #5a4210;
+
+  --error: #f85149;
+  --error-bg: #2a1215;
+  --error-border: #6e2724;
+
+  --info: #58a6ff;
+  --info-bg: #0a1f3d;
+  --info-border: #1a3a6b;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 3px 8px rgba(0, 0, 0, 0.4);
+}

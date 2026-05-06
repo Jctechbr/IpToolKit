@@ -1,0 +1,16 @@
+# Claude Code config and project instructions
+CLAUDE.md
+.claude/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Editor artifacts
+.vscode/
+.idea/
+
+# Environment files
+.env
+.env.*
+!.env.example
