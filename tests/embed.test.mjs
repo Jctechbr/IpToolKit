@@ -68,6 +68,30 @@ describe("extract - unknown address", () => {
   });
 });
 
+describe("extract - ipv4-compatible edge cases", () => {
+  it("returns null for ::1 (loopback must not be classified as ipv4-compatible)", () => {
+    assert.equal(extract("::1"), null);
+  });
+
+  it("returns null for ::0 (unspecified)", () => {
+    assert.equal(extract("::"), null);
+  });
+
+  it("classifies ::0.0.0.2 as ipv4-compatible with ipv4 0.0.0.2", () => {
+    const result = extract("::0.0.0.2");
+    assert.ok(result !== null);
+    assert.equal(result.mode, "ipv4-compatible");
+    assert.equal(result.ipv4, "0.0.0.2");
+  });
+
+  it("classifies ::255.255.255.255 as ipv4-compatible", () => {
+    const result = extract("::255.255.255.255");
+    assert.ok(result !== null);
+    assert.equal(result.mode, "ipv4-compatible");
+    assert.equal(result.ipv4, "255.255.255.255");
+  });
+});
+
 describe("bitLayout", () => {
   it("returns 8 words for /96 modes", () => {
     const layout = bitLayout("ipv4-mapped");

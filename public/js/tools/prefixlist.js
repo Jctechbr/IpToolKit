@@ -172,7 +172,7 @@ export function init(container) {
         </ul>
       </div>`;
     }
-    push("prefixlist", { prefixes: encodeURIComponent(valid.join("\n")) });
+    push("prefixlist", { prefixes: valid.join("\n") });
     render(valid);
   });
 
@@ -183,7 +183,7 @@ export function init(container) {
       try { valid.push(normalize(l)); } catch (_) { /* skip invalid */ }
     }
     const agg = aggregate(valid);
-    push("prefixlist", { prefixes: encodeURIComponent(agg.join("\n")) });
+    push("prefixlist", { prefixes: agg.join("\n") });
     render(agg, true);
   });
 

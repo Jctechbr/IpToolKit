@@ -96,7 +96,7 @@ export function extract(ipv6, customPrefix) {
   // IPv4-compatible (::/96): top 96 bits must be exactly zero and lower 32 non-zero.
   // Checked separately to avoid false positives (e.g. ::1 has top 96 bits zero but
   // is the loopback address, not an IPv4-compatible address).
-  if (n >> 32n === 0n && (n & 0xffffffffn) !== 0n) {
+  if (n > 1n && n >> 32n === 0n) {
     return { mode: "ipv4-compatible", ipv4: numToIp(Number(n & 0xffffffffn)) };
   }
 
@@ -107,7 +107,6 @@ export function extract(ipv6, customPrefix) {
  * Generate a bit-layout descriptor showing where the IPv4 octets land
  * in the 8 × 16-bit IPv6 words.
  * @param {string} mode
- * @param {string} [customPrefix]
  * @returns {Array<{word:number, label:string, type:"prefix"|"ipv4"|"zero"}>}
  */
 export function bitLayout(mode) {

@@ -147,8 +147,8 @@ export function init(container) {
     }
 
     push("planner", {
-      pool: encodeURIComponent(pool),
-      reqs: encodeURIComponent(reqsInput.value),
+      pool,
+      reqs: reqsInput.value,
     });
 
     let allocation;

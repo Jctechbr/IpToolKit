@@ -155,7 +155,7 @@ export function init(container) {
       return;
     }
 
-    push("aruba_dhcp", { ctlrs: encodeURIComponent(ips.join("\n")) });
+    push("aruba_dhcp", { ctlrs: ips.join("\n") });
 
     const bytes   = buildBytes(ips);
     const colon   = hexColon(bytes);

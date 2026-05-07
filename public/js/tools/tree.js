@@ -69,7 +69,7 @@ function buildNode(cidr) {
 
 export function init(container) {
   const { params } = decode(location.hash);
-  const initial = params.cidr ? decodeURIComponent(params.cidr) : "";
+  const initial = params.cidr || "";
 
   container.innerHTML = `
   <div class="tool-header">
@@ -102,7 +102,7 @@ export function init(container) {
     output.innerHTML = "";
     if (!val) return;
 
-    push("tree", { cidr: encodeURIComponent(val) });
+    push("tree", { cidr: val });
 
     try {
       const info = subnetInfo(val);

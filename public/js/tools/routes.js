@@ -147,7 +147,7 @@ export function init(container) {
     }
 
     push("routes", {
-      table: encodeURIComponent(tableText),
+      table: tableText,
       dest,
     });
 

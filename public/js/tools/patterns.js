@@ -92,7 +92,7 @@ export function init(container) {
     result.innerHTML = "";
     const { valid, skipped } = parseInput(textarea.value);
 
-    push("patterns", { cidrs: encodeURIComponent(textarea.value) });
+    push("patterns", { cidrs: textarea.value });
 
     if (valid.length === 0) {
       result.innerHTML = `<div class="result-box --warning">No valid CIDRs found.${skipped > 0 ? ` (${skipped} invalid line${skipped !== 1 ? "s" : ""} skipped)` : ""}</div>`;

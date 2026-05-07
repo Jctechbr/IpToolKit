@@ -69,7 +69,7 @@ export function init(container) {
   // Default rows
   if (params.requests) {
     try {
-      JSON.parse(decodeURIComponent(params.requests)).forEach(r => addRow(r.label, r.size));
+      JSON.parse(params.requests).forEach(r => addRow(r.label, r.size));
     } catch (_) { addRow(); }
   } else {
     addRow("Site A", "50");
@@ -95,7 +95,7 @@ export function init(container) {
       return;
     }
 
-    push("allocate", { pool, requests: encodeURIComponent(JSON.stringify(requests)) });
+    push("allocate", { pool, requests: JSON.stringify(requests) });
 
     try {
       const { assignments, free, errors } = allocate(pool, requests);

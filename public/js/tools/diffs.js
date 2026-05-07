@@ -106,8 +106,8 @@ export function init(container) {
     const rawB = taB.value;
 
     push("diffs", {
-      a: encodeURIComponent(rawA),
-      b: encodeURIComponent(rawB),
+      a: rawA,
+      b: rawB,
     });
 
     const { valid: validA, invalidCount: badA } = parseList(rawA);

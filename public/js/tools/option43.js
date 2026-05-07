@@ -65,7 +65,7 @@ function makeSection(heading, configText, copyText, copyLabel) {
 
 export function init(container) {
   const { params } = decode(location.hash);
-  const savedIps = params.wlcs ? decodeURIComponent(params.wlcs) : "";
+  const savedIps = params.wlcs || "";
 
   container.innerHTML = `
   <div class="tool-header">
@@ -118,7 +118,7 @@ export function init(container) {
       return;
     }
 
-    push("option43", { wlcs: encodeURIComponent(ips.join("\n")) });
+    push("option43", { wlcs: ips.join("\n") });
 
     const bytes   = buildBytes(ips);
     const colon   = hexColon(bytes);
