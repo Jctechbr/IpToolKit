@@ -92,8 +92,8 @@ function buildPlainText(assignments, poolCidr, free) {
 
 export function init(container) {
   const { params } = decode(location.hash);
-  const initialPool = params.pool ? decodeURIComponent(params.pool) : "";
-  const initialReqs = params.reqs ? decodeURIComponent(params.reqs) : "";
+  const initialPool = params.pool ? params.pool : "";
+  const initialReqs = params.reqs ? params.reqs : "";
 
   container.innerHTML = `
   <div class="tool-header">

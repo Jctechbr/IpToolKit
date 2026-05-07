@@ -9,13 +9,13 @@ const TOOLS = {
   prefixlist: () => import("./tools/prefixlist.js?v=2"),
   allocate:   () => import("./tools/allocate.js?v=2"),
   option43:   () => import("./tools/option43.js?v=2"),
-  aruba_dhcp: () => import("./tools/aruba_dhcp.js"),
-  tree:       () => import("./tools/tree.js"),
-  diffs:      () => import("./tools/diffs.js"),
-  routes:     () => import("./tools/routes.js"),
-  planner:    () => import("./tools/planner.js"),
-  patterns:   () => import("./tools/patterns.js"),
-  practice:   () => import("./tools/practice.js"),
+  aruba_dhcp: () => import("./tools/aruba_dhcp.js?v=2"),
+  tree:       () => import("./tools/tree.js?v=2"),
+  diffs:      () => import("./tools/diffs.js?v=2"),
+  routes:     () => import("./tools/routes.js?v=2"),
+  planner:    () => import("./tools/planner.js?v=2"),
+  patterns:   () => import("./tools/patterns.js?v=2"),
+  practice:   () => import("./tools/practice.js?v=2"),
 };
 
 const DEFAULT_TOOL = "calc";

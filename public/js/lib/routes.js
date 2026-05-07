@@ -4,7 +4,7 @@
  * All functions are pure — no DOM access, no side effects.
  * Supports IPv4 only; uses ipv4.js for address arithmetic.
  */
-import { ipToNum, parseCidr, networkAddress, prefixToMask } from "./ipv4.js";
+import { ipToNum, numToIp, parseCidr, networkAddress, prefixToMask } from "./ipv4.js";
 
 /**
  * @typedef {Object} RouteEntry
@@ -69,7 +69,7 @@ export function parseTable(text) {
     // Validate the prefix by parsing it; this throws on bad input
     const parsed = parseCidr(prefixRaw);
     const netNum = networkAddress(parsed);
-    const canonicalPrefix = `${_numToIpLocal(netNum)}/${parsed.prefix}`;
+    const canonicalPrefix = `${numToIp(netNum)}/${parsed.prefix}`;
 
     entries.push({ prefix: canonicalPrefix, nexthop });
   }
@@ -120,22 +120,3 @@ export function longestMatch(table, destIp) {
   };
 }
 
-// ---------------------------------------------------------------------------
-// Internal helper — avoids importing numToIp and creating a circular risk
-// (ipv4.js is already the canonical source; this mirrors it locally for the
-// one place we need it inside this pure lib file).
-// ---------------------------------------------------------------------------
-
-/**
- * Convert a 32-bit unsigned integer to dotted-decimal notation.
- * @param {number} n
- * @returns {string}
- */
-function _numToIpLocal(n) {
-  return [
-    (n >>> 24) & 0xff,
-    (n >>> 16) & 0xff,
-    (n >>> 8) & 0xff,
-    n & 0xff,
-  ].join(".");
-}

@@ -92,7 +92,6 @@ const V6_PARSED = V6_RANGES.map((r) => ({ ...parseV6Range(r.prefix), tag: r.tag 
 export function classifyV6(addr) {
   const raw = addr.includes("/") ? addr.split("/")[0] : addr;
   const n = ipToBigint(raw);
-  const MASK128 = (1n << 128n) - 1n;
   const tags = [];
   for (const r of V6_PARSED) {
     if ((n & r.mask) === r.net) {

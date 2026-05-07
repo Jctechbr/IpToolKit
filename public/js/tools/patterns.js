@@ -63,7 +63,7 @@ function parseInput(text) {
 
 export function init(container) {
   const { params } = decode(location.hash);
-  const initial = params.cidrs ? decodeURIComponent(params.cidrs) : "";
+  const initial = params.cidrs ? params.cidrs : "";
 
   const EXAMPLE = `10.0.0.0/24\n10.0.1.0/24\n172.16.0.0/12\n192.168.1.0/25\n192.168.1.128/25\n2001:db8::/32\nfd00::/8`;
 

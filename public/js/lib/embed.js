@@ -80,9 +80,8 @@ export function extract(ipv6, customPrefix) {
 
   // Well-known /96 prefixes
   const wkPrefixes = [
-    { mode: "ipv4-mapped",     base: ipToBigint("::ffff:0:0") },
-    { mode: "nat64-wk",        base: ipToBigint("64:ff9b::") },
-    { mode: "ipv4-compatible", base: 0n },
+    { mode: "ipv4-mapped", base: ipToBigint("::ffff:0:0") },
+    { mode: "nat64-wk",    base: ipToBigint("64:ff9b::") },
   ];
   const mask96 = ((1n << 128n) - 1n) ^ ((1n << 32n) - 1n);
   for (const wk of wkPrefixes) {
@@ -92,6 +91,13 @@ export function extract(ipv6, customPrefix) {
         return { mode: wk.mode, ipv4: numToIp(Number(v4big)) };
       }
     }
+  }
+
+  // IPv4-compatible (::/96): top 96 bits must be exactly zero and lower 32 non-zero.
+  // Checked separately to avoid false positives (e.g. ::1 has top 96 bits zero but
+  // is the loopback address, not an IPv4-compatible address).
+  if (n >> 32n === 0n && (n & 0xffffffffn) !== 0n) {
+    return { mode: "ipv4-compatible", ipv4: numToIp(Number(n & 0xffffffffn)) };
   }
 
   return null;
@@ -104,7 +110,7 @@ export function extract(ipv6, customPrefix) {
  * @param {string} [customPrefix]
  * @returns {Array<{word:number, label:string, type:"prefix"|"ipv4"|"zero"}>}
  */
-export function bitLayout(mode, customPrefix) {
+export function bitLayout(mode) {
   // 8 words (indices 0–7, word 0 = most significant)
   const words = Array.from({ length: 8 }, (_, i) => ({
     word: i,

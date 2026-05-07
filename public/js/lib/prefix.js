@@ -97,7 +97,7 @@ export function overlaps(a, b) {
 /**
  * Classify relationships in a list of CIDRs.
  * Returns array of {cidr, issues} where issues is an array of strings.
- * Issues: "duplicate", "covered_by:<other>", "covers:<other>"
+ * Issues: "duplicate", "covered_by:<other>"
  */
 export function classify(cidrs) {
   const parsed = cidrs.map((c) => parse(normalize(c)));

@@ -57,10 +57,18 @@ export function generateQuestion(type, cidr) {
 
     case "hosts": {
       const hostStr = String(hosts);
+      let hostsExplanation;
+      if (prefix >= 32) {
+        hostsExplanation = `A /${prefix} is a host route representing a single address — it has 1 usable address (RFC 3021 / RFC 4632).`;
+      } else if (prefix === 31) {
+        hostsExplanation = `A /31 (RFC 3021) is a point-to-point link with 2 addresses, both usable — there is no dedicated network or broadcast address.`;
+      } else {
+        hostsExplanation = `A /${prefix} subnet has 2^(32-${prefix}) = ${Math.pow(2, 32 - prefix).toLocaleString()} total addresses. Subtracting the network and broadcast addresses gives ${hostStr} usable hosts.`;
+      }
       return {
         question: `How many usable hosts does ${canonicalCidr} provide?`,
         answer: hostStr,
-        explanation: `A /${prefix} subnet has 2^(32-${prefix}) = ${Math.pow(2, 32 - prefix).toLocaleString()} total addresses. Subtracting the network and broadcast addresses gives ${hostStr} usable hosts.`,
+        explanation: hostsExplanation,
       };
     }
 
@@ -73,7 +81,7 @@ export function generateQuestion(type, cidr) {
       return {
         question: `What is the smallest prefix length (e.g. /24) that accommodates ${hostStr} usable hosts?`,
         answer: `/${prefix}`,
-        explanation: `You need at least ${hostStr} usable hosts. 2^(32-${prefix})-2 = ${hosts.toLocaleString()} hosts fit in a /${prefix}. A //${prefix + 1} would only hold ${Math.max(0, Math.pow(2, 32 - (prefix + 1)) - 2).toLocaleString()}, which is not enough.`,
+        explanation: `You need at least ${hostStr} usable hosts. 2^(32-${prefix})-2 = ${hosts.toLocaleString()} hosts fit in a /${prefix}. A /${prefix + 1} would only hold ${Math.max(0, Math.pow(2, 32 - (prefix + 1)) - 2).toLocaleString()}, which is not enough.`,
       };
     }
 

@@ -66,8 +66,8 @@ function sectionHtml(title, items, modifierClass, skipped) {
 
 export function init(container) {
   const { params } = decode(location.hash);
-  const initialA = params.a ? decodeURIComponent(params.a) : "";
-  const initialB = params.b ? decodeURIComponent(params.b) : "";
+  const initialA = params.a ? params.a : "";
+  const initialB = params.b ? params.b : "";
 
   container.innerHTML = `
   <div class="tool-header">

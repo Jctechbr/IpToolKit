@@ -18,7 +18,7 @@ fd00::/8`;
 
 export function init(container) {
   const { params } = decode(location.hash);
-  const initial = params.prefixes ? decodeURIComponent(params.prefixes) : "";
+  const initial = params.prefixes ? params.prefixes : "";
 
   container.innerHTML = `
   <div class="tool-header">
@@ -142,11 +142,6 @@ export function init(container) {
         const addr = cidr.split("/")[0];
         const prefix = cidr.split("/")[1];
         if (isV6) return `ipv6 prefix-list ITX_LIST seq ${(i + 1) * 5} permit ${cidr}`;
-        const wildcardOctets = addr.split(".").map((o, idx) => {
-          const maskBits = Math.max(0, parseInt(prefix, 10) - idx * 8);
-          const wc = maskBits >= 8 ? 0 : maskBits <= 0 ? 255 : (255 >> maskBits);
-          return wc;
-        });
         return `ip prefix-list ITX_LIST seq ${(i + 1) * 5} permit ${cidr}`;
       });
       downloadText(lines.join("\n"), "prefixes.ios", "text/plain");

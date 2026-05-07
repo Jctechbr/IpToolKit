@@ -3,8 +3,6 @@
  * All functions are pure — no DOM, no side effects.
  */
 
-const MASK128 = (1n << 128n) - 1n;
-
 /** @param {bigint} n @returns {string} compressed IPv6 notation */
 export function bigintToIp(n) {
   n = BigInt.asUintN(128, n);

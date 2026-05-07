@@ -102,7 +102,7 @@ export function init(container) {
       return;
     }
     if (lines.length > 8) {
-      resultEl.innerHTML = `<div class="result-box --warning" style="margin-top:16px">Maximum 8 WLC IPs supported. Found ${lines.length}.</div>`;
+      resultEl.innerHTML = `<div class="result-box --warning" style="margin-top:16px">Maximum 8 WLC IPs supported. Found ${esc(String(lines.length))}.</div>`;
       return;
     }
 
@@ -136,10 +136,10 @@ export function init(container) {
         <thead><tr><th>Field</th><th>Hex</th><th>Dec</th><th>Meaning</th></tr></thead>
         <tbody>
           <tr><td>Sub-type</td><td><code>f1</code></td><td>241</td><td>Cisco WLC sub-option</td></tr>
-          <tr><td>Length</td><td><code>${esc(lenHex)}</code></td><td>${lenDec}</td>
-              <td>${ips.length} WLC × 4 bytes</td></tr>
+          <tr><td>Length</td><td><code>${esc(lenHex)}</code></td><td>${esc(String(lenDec))}</td>
+              <td>${esc(String(ips.length))} WLC × 4 bytes</td></tr>
           ${ips.map((ip, i) => `<tr>
-              <td>WLC ${i + 1}</td>
+              <td>WLC ${esc(String(i + 1))}</td>
               <td><code>${esc(ipHex(ip))}</code></td>
               <td colspan="2"><code>${esc(ip)}</code></td>
             </tr>`).join("")}
@@ -158,7 +158,7 @@ export function init(container) {
         <button class="copy-btn" data-copy="${esc(raw)}">⎘ raw</button>
       </div>
       <div style="margin-top:6px;font-size:var(--text-sm);color:var(--text-tertiary)">
-        ${bytes.length} bytes — type(1) + length(1) + ${lenDec} address bytes
+        ${esc(String(bytes.length))} bytes — type(1) + length(1) + ${esc(String(lenDec))} address bytes
       </div>`;
 
     // ---- Config snippets ----

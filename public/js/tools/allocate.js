@@ -8,10 +8,9 @@ function esc(s) {
   return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-let reqRows = [];
-let nextId = 0;
-
 export function init(container) {
+  let reqRows = [];
+  let nextId = 0;
   const { params } = decode(location.hash);
   const initialPool = params.pool || "";
 

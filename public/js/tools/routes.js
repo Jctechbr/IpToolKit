@@ -80,7 +80,7 @@ function renderResult(result, destIp) {
  */
 export function init(container) {
   const { params } = decode(location.hash);
-  const initialTable = params.table ? decodeURIComponent(params.table) : "";
+  const initialTable = params.table ? params.table : "";
   const initialDest = params.dest || "";
 
   container.innerHTML = `
@@ -191,8 +191,6 @@ export function init(container) {
   // Restore state from URL on load
   if (initialTable && initialDest) {
     lookup();
-  } else if (initialTable || initialDest) {
-    // Partial state — just restore fields without auto-running
   } else {
     destEl.focus();
   }

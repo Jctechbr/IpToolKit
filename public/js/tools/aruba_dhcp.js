@@ -87,7 +87,7 @@ function makeWarning(text) {
 
 export function init(container) {
   const { params } = decode(location.hash);
-  const savedIps = params.ctlrs ? decodeURIComponent(params.ctlrs) : "";
+  const savedIps = params.ctlrs ? params.ctlrs : "";
 
   container.innerHTML = `
   <div class="tool-header">
@@ -174,10 +174,10 @@ export function init(container) {
       <thead><tr><th>Field</th><th>Hex</th><th>Dec</th><th>Meaning</th></tr></thead>
       <tbody>
         <tr><td>Sub-type</td><td><code>01</code></td><td>1</td><td>Aruba controller discovery</td></tr>
-        <tr><td>Length</td><td><code>${esc(lenHex)}</code></td><td>${lenDec}</td>
-            <td>${ips.length} controller × 4 bytes</td></tr>
+        <tr><td>Length</td><td><code>${esc(lenHex)}</code></td><td>${esc(String(lenDec))}</td>
+            <td>${esc(String(ips.length))} controller × 4 bytes</td></tr>
         ${ips.map((ip, i) => `<tr>
-            <td>Controller ${i + 1}</td>
+            <td>Controller ${esc(String(i + 1))}</td>
             <td><code>${esc(ipHex(ip))}</code></td>
             <td colspan="2"><code>${esc(ip)}</code></td>
           </tr>`).join("")}

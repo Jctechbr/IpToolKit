@@ -20,7 +20,10 @@ export function reverseV4(cidr) {
   ];
 
   let zoneName, note;
-  if (prefix <= 8) {
+  if (prefix === 0) {
+    zoneName = "in-addr.arpa";
+    note = "Covers the entire IPv4 address space";
+  } else if (prefix <= 8) {
     zoneName = `${octets[0]}.in-addr.arpa`;
     note = prefix < 8 ? `Classless /in-addr.arpa delegation may be needed for /${prefix}` : "";
   } else if (prefix <= 16) {
@@ -55,6 +58,11 @@ export function reverseV6(cidr) {
   const prefix = parseInt(cidr.slice(idx + 1), 10);
   const net = netV6(ip, prefix);
   const n = ipToBigint(net);
+
+  // Guard: /0 covers the entire IPv6 space
+  if (prefix === 0) {
+    return { zoneName: "ip6.arpa", origin: "$ORIGIN ip6.arpa.", note: "Covers the entire IPv6 address space" };
+  }
 
   // Full 32-nibble representation
   const hex = n.toString(16).padStart(32, "0");

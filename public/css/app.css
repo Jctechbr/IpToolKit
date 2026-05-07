@@ -454,3 +454,177 @@ main {
   .tab-btn { font-size: 0.75rem; padding: var(--space-xs) var(--space-sm); }
   .logo-text { display: none; }
 }
+
+/* ============================================================
+   Phase 2/3 tools
+   ============================================================ */
+
+/* ---- Tree tool ---- */
+
+/* Wrapper card rendered around the root tree node */
+.tree-root {
+  padding: var(--space-md);
+}
+
+/* Individual subnet node in the tree */
+.tree-node {
+  border-left: 2px solid var(--border-subtle);
+  margin-top: var(--space-sm);
+}
+
+/* The single row showing CIDR, host count, and split button */
+.tree-node__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition);
+}
+
+.tree-node__row:hover {
+  background: var(--bg-alt);
+}
+
+/* Monospaced CIDR label inside a tree row */
+.tree-node__cidr {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  flex: 1;
+}
+
+/* Host-count annotation inside a tree row */
+.tree-node__hosts {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+/* Container for child nodes — indented relative to parent */
+.tree-node__children {
+  padding-left: var(--space-lg);
+}
+
+/* Split button — extends .btn.btn--sm.btn--secondary; no extra chrome needed */
+.tree-split-btn {
+  flex-shrink: 0;
+}
+
+/* ---- Diffs tool ---- */
+
+/* Side-by-side textarea layout for the two CIDR lists */
+.diff-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+@media (max-width: 720px) {
+  .diff-inputs { grid-template-columns: 1fr; }
+}
+
+/* Each result-box section (Only in A / Only in B / Both) */
+.diff-section {
+  margin-bottom: var(--space-sm);
+}
+
+/* Header row inside a diff section: title + count + optional skip note */
+.diff-section__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+/* Numeric count pill inside the section header */
+.diff-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  padding: 0 var(--space-xs);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+/* "N invalid lines skipped" note in the section header */
+.diff-skip-note {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
+  margin-left: auto;
+}
+
+/* Ordered/unordered list of CIDRs inside a diff section */
+.diff-list {
+  margin: 0;
+  padding: 0 0 0 var(--space-md);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 2;
+  list-style: none;
+}
+
+.diff-list li + li {
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* Placeholder shown when a diff category has zero entries */
+.diff-empty {
+  color: var(--text-tertiary);
+  font-style: italic;
+  font-family: var(--font-sans);
+}
+
+/* ---- Routes tool ---- */
+
+/* Highlighted table row for the longest-prefix-match winner */
+.route-winner td {
+  background: var(--success-bg);
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.route-winner:hover td {
+  background: var(--success-bg);
+}
+
+/* Summary line shown above the matches table */
+.route-winner-summary {
+  margin: 0 0 var(--space-md) 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+/* ---- Practice tool ---- */
+
+/* Score display row: label on the left, reset button on the right */
+.practice-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+/* Question text rendered in the question card */
+.practice-question-text {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--space-md) 0;
+  line-height: 1.5;
+}
+
+/* Explanation shown after the user submits an answer */
+.practice-explanation {
+  display: block;
+  margin-top: var(--space-xs);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-weight: 400;
+}
