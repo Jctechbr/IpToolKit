@@ -58,6 +58,21 @@ describe("parseCidr", () => {
   it("parses bare host as /32", () => {
     assert.equal(parseCidr("1.2.3.4").prefix, 32);
   });
+
+  it("keeps an all-zero mask as a netmask (/0)", () => {
+    assert.equal(parseCidr("10.1.1.1 0.0.0.0").prefix, 0);
+  });
+
+  it("keeps an all-ones mask as a netmask (/32)", () => {
+    assert.equal(parseCidr("10.1.1.1 255.255.255.255").prefix, 32);
+  });
+
+  it("rejects prefix tokens that are not plain decimal", () => {
+    assert.throws(() => parseCidr("10.0.0.0/24abc"), /prefix/i);
+    assert.throws(() => parseCidr("10.0.0.0/0x18"), /prefix/i);
+    assert.throws(() => parseCidr("10.0.0.0/+24"), /prefix/i);
+    assert.throws(() => parseCidr("10.0.0.0/08"), /prefix/i);
+  });
 });
 
 describe("subnet math", () => {

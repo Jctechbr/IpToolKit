@@ -71,7 +71,15 @@ export function parseTable(text) {
     const netNum = networkAddress(parsed);
     const canonicalPrefix = `${numToIp(netNum)}/${parsed.prefix}`;
 
-    entries.push({ prefix: canonicalPrefix, nexthop });
+    // The line regex accepts any 1–3 digit octet, including 999 and 001.
+    let hop;
+    try {
+      hop = numToIp(ipToNum(nexthop));
+    } catch (err) {
+      throw new Error(`Line ${i + 1}: ${err.message}`);
+    }
+
+    entries.push({ prefix: canonicalPrefix, nexthop: hop });
   }
 
   return entries;

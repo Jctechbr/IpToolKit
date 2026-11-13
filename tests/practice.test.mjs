@@ -160,6 +160,22 @@ describe('generateQuestion — type "prefix"', () => {
     const q = generateQuestion("prefix", "10.0.0.0/20");
     assert.ok(q.explanation.length > 0);
   });
+
+  it("explains /32 as a single address", () => {
+    const q = generateQuestion("prefix", "10.0.0.0/32");
+    assert.equal(q.answer, "/32");
+    assert.match(q.explanation, /1 usable address/);
+    assert.match(q.explanation, /longest IPv4 prefix/);
+    assert.doesNotMatch(q.explanation, /2\^\(32-/);
+  });
+
+  it("explains /31 with two usable addresses", () => {
+    const q = generateQuestion("prefix", "10.0.0.0/31");
+    assert.equal(q.answer, "/31");
+    assert.match(q.explanation, /2 usable addresses/);
+    assert.match(q.explanation, /A \/32 holds 1/);
+    assert.doesNotMatch(q.explanation, /2\^\(32-31\)/);
+  });
 });
 
 // ---------------------------------------------------------------------------

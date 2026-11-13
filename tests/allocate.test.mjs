@@ -114,4 +114,29 @@ describe("allocate - edge cases", () => {
     assert.equal(result.errors.length, 0);
     assert.equal(result.assignments[0].cidr, "10.0.0.0/24");
   });
+
+  it("rejects a prefix with trailing junk instead of truncating it", () => {
+    const result = allocate("10.0.0.0/22", [{ label: "X", size: "/24abc" }]);
+    assert.equal(result.assignments.length, 0);
+    assert.match(result.errors[0], /prefix/i);
+  });
+
+  it("rejects an IPv4 prefix above /32 without throwing", () => {
+    const result = allocate("10.0.0.0/8", [{ label: "X", size: "/96" }]);
+    assert.equal(result.assignments.length, 0);
+    assert.match(result.errors[0], /prefix/i);
+  });
+
+  it("rejects a scientific-notation host count", () => {
+    const result = allocate("10.0.0.0/24", [{ label: "X", size: "1e2" }]);
+    assert.equal(result.assignments.length, 0);
+    assert.match(result.errors[0], /host count/i);
+  });
+
+  it("does not report success when the host count cannot fit", () => {
+    assert.throws(() => hostsToPrefixLen(2n ** 40n, "v4"), /does not fit/);
+    const result = allocate("0.0.0.0/0", [{ label: "X", size: String(2n ** 40n) }]);
+    assert.equal(result.assignments.length, 0);
+    assert.match(result.errors[0], /does not fit/);
+  });
 });

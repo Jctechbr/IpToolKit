@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { parsePlannerRequests } from "../public/js/tools/planner.js";
+import { parsePlannerRequests, poolAddressCount } from "../public/js/tools/planner.js";
 import { allocate } from "../public/js/lib/allocate.js";
 
 describe("parsePlannerRequests — valid host-count format", () => {
@@ -102,6 +102,27 @@ describe("parsePlannerRequests — invalid lines throw", () => {
       () => parsePlannerRequests("BadNet /abc"),
       /Invalid/
     );
+  });
+
+  it("throws when a prefix token has trailing junk", () => {
+    assert.throws(
+      () => parsePlannerRequests("Name /24abc"),
+      /Invalid/
+    );
+  });
+});
+
+describe("poolAddressCount", () => {
+  it("counts a bare IPv4 address as one address", () => {
+    assert.equal(poolAddressCount("10.0.0.0"), 1n);
+  });
+
+  it("counts a netmask-form pool", () => {
+    assert.equal(poolAddressCount("10.0.0.0 255.255.255.0"), 256n);
+  });
+
+  it("counts an IPv6 /32", () => {
+    assert.equal(poolAddressCount("2001:db8::/32"), 1n << 96n);
   });
 });
 

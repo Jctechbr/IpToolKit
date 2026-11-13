@@ -78,10 +78,20 @@ export function generateQuestion(type, cidr) {
       // "What is the smallest prefix length that accommodates N hosts?"
       // where N = hostCount of the given CIDR.
       const hostStr = String(hosts);
+      // /31 and /32 do not use 2^(32-n)-2. That formula is negative there:
+      // a /32 has 1 usable address, a /31 has 2 (RFC 3021).
+      let explanation;
+      if (prefix >= 32) {
+        explanation = `A /32 has 1 usable address. It is the longest IPv4 prefix, so there is no longer prefix to compare.`;
+      } else if (prefix === 31) {
+        explanation = `You need at least ${hostStr} usable hosts. A /31 (RFC 3021) has 2 usable addresses. A /32 holds 1, which is not enough.`;
+      } else {
+        explanation = `You need at least ${hostStr} usable hosts. 2^(32-${prefix})-2 = ${hosts.toLocaleString()} hosts fit in a /${prefix}. A /${prefix + 1} would only hold ${Math.max(0, Math.pow(2, 32 - (prefix + 1)) - 2).toLocaleString()}, which is not enough.`;
+      }
       return {
         question: `What is the smallest prefix length (e.g. /24) that accommodates ${hostStr} usable hosts?`,
         answer: `/${prefix}`,
-        explanation: `You need at least ${hostStr} usable hosts. 2^(32-${prefix})-2 = ${hosts.toLocaleString()} hosts fit in a /${prefix}. A /${prefix + 1} would only hold ${Math.max(0, Math.pow(2, 32 - (prefix + 1)) - 2).toLocaleString()}, which is not enough.`,
+        explanation,
       };
     }
 

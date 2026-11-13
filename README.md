@@ -39,16 +39,17 @@ python3 -m http.server --directory public 8080
 
 ```bash
 docker build -t iptoolkit:latest .
-docker run --rm -p 8080:80 iptoolkit:latest
-# Open http://localhost:8080
+docker run --rm -p 127.0.0.1:8080:80 iptoolkit:latest
+# Open http://127.0.0.1:8080
 ```
 
-### With Traefik
+### Docker Compose
+
+Builds from this directory and publishes the site on loopback only.
 
 ```bash
-COMPOSE_PROJECT_NAME=iptoolkit \
-TRAEFIK_HOST=iptoolkit.yourdomain.com \
-docker compose up -d
+docker compose up -d --build
+# Open http://127.0.0.1:5010
 ```
 
 ## Development

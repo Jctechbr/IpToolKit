@@ -1,11 +1,16 @@
 services:
   iptoolkit:
     build:
-      context: /home/ironman/IpToolKit
+      context: .
       dockerfile: Dockerfile
     image: iptoolkit:latest
     restart: unless-stopped
     ports:
       - "127.0.0.1:5010:80"
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /tmp
     environment:
       - TZ=America/Sao_Paulo

@@ -5,7 +5,7 @@ import { decode } from "./lib/hash_state.js";
 
 const TOOLS = {
   calc:       () => import("./tools/calculator.js?v=2"),
-  embed:      () => import("./tools/embed.js?v=2"),
+  embed:      () => import("./tools/embed.js?v=3"),
   prefixlist: () => import("./tools/prefixlist.js?v=2"),
   allocate:   () => import("./tools/allocate.js?v=2"),
   option43:   () => import("./tools/option43.js?v=2"),
@@ -33,8 +33,14 @@ let routeSeq = 0;
 
 async function route() {
   const seq = ++routeSeq;
-  const { toolId } = decode(location.hash);
-  const id = TOOLS[toolId] ? toolId : DEFAULT_TOOL;
+  let toolId = "";
+  try {
+    toolId = decode(location.hash).toolId;
+  } catch {
+    toolId = "";
+  }
+  // Own keys only. "constructor" and "__proto__" exist on the prototype and are not tools.
+  const id = Object.hasOwn(TOOLS, toolId) ? toolId : DEFAULT_TOOL;
 
   // Update tab state
   document.querySelectorAll(".tab-btn[data-tool]").forEach((btn) => {

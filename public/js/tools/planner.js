@@ -2,6 +2,8 @@
  * Network Planner tool — VLSM allocation from a textarea of named requests.
  */
 import { allocate } from "../lib/allocate.js";
+import { parseCidr as parseV4 } from "../lib/ipv4.js";
+import { parseCidr as parseV6 } from "../lib/ipv6.js";
 import { push, decode } from "../lib/hash_state.js";
 
 function esc(s) {
@@ -31,11 +33,11 @@ export function parsePlannerRequests(text) {
     if (!name) throw new Error(`Invalid request line (empty name): "${line}"`);
 
     if (sizeRaw.startsWith("/")) {
-      const prefixLen = parseInt(sizeRaw.slice(1), 10);
-      if (isNaN(prefixLen) || prefixLen < 0 || prefixLen > 128) {
+      // Same rule as parsePrefixToken: "/24abc" must not become /24.
+      if (!/^\/(?:0|[1-9]\d{0,2})$/.test(sizeRaw) || Number(sizeRaw.slice(1)) > 128) {
         throw new Error(`Invalid prefix length in: "${line}"`);
       }
-      requests.push({ label: name, size: sizeRaw });
+      requests.push({ label: name, size: `/${Number(sizeRaw.slice(1))}` });
     } else {
       const hosts = parseInt(sizeRaw, 10);
       if (isNaN(hosts) || hosts <= 0 || String(hosts) !== sizeRaw) {
@@ -48,10 +50,21 @@ export function parsePlannerRequests(text) {
 }
 
 /**
- * Format a bigint host count as a readable string.
- * @param {bigint|number} n
- * @returns {string}
+ * Address count of a pool. Uses the CIDR parsers so a bare address or
+ * "ip netmask" form does not blow up on a missing slash.
+ * @param {string} pool
+ * @returns {bigint}
  */
+export function poolAddressCount(pool) {
+  if (pool.includes(":")) {
+    const { prefix } = parseV6(pool);
+    return 1n << BigInt(128 - prefix);
+  }
+  const { prefix } = parseV4(pool);
+  return 1n << BigInt(32 - prefix);
+}
+
+/** @param {bigint|number} n @returns {string} */
 function fmtHosts(n) {
   return typeof n === "bigint" ? n.toLocaleString() : String(n);
 }
@@ -172,9 +185,7 @@ export function init(container) {
     }
 
     if (assignments.length > 0) {
-      const totalPool = pool.includes(":")
-        ? 1n << BigInt(128 - parseInt(pool.split("/")[1], 10))
-        : BigInt(Math.pow(2, 32 - parseInt(pool.split("/")[1], 10)));
+      const totalPool = poolAddressCount(pool);
 
       const rows = assignments.map((a) => {
         const blockSize = 1n << BigInt((pool.includes(":") ? 128 : 32) - a.prefixLen);

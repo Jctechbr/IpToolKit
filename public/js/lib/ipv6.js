@@ -2,6 +2,7 @@
  * IPv6 parsing, formatting, and subnet math using BigInt (128-bit).
  * All functions are pure — no DOM, no side effects.
  */
+import { ipToNum, parsePrefixToken } from "./ipv4.js";
 
 /** @param {bigint} n @returns {string} compressed IPv6 notation */
 export function bigintToIp(n) {
@@ -27,9 +28,23 @@ export function bigintToIp(n) {
   return `${left}::${right}`.replace(/^:([^:])/, "$1").replace(/([^:]):$/, "$1");
 }
 
+/**
+ * Drop a single RFC 4007 zone id (`fe80::1%eth0`). The zone is not part of
+ * the 128-bit address. A malformed zone is rejected.
+ * @param {string} ip
+ * @returns {string}
+ */
+function stripZone(ip) {
+  const pct = ip.indexOf("%");
+  if (pct === -1) return ip;
+  const zone = ip.slice(pct + 1);
+  if (!/^[A-Za-z0-9._:-]+$/.test(zone)) throw new Error(`Invalid IPv6 zone: ${ip}`);
+  return ip.slice(0, pct);
+}
+
 /** @param {string} ip @returns {bigint} */
 export function ipToBigint(ip) {
-  ip = ip.trim();
+  ip = stripZone(ip.trim());
   if (ip.includes(".")) {
     // IPv4-mapped or embedded — normalise first
     ip = expandEmbeddedIPv4(ip);
@@ -41,6 +56,8 @@ export function ipToBigint(ip) {
   const missing = 8 - left.length - right.length;
   if (halves.length === 1 && left.length !== 8)
     throw new Error(`Invalid IPv6 group count: ${ip}`);
+  if (halves.length === 2 && missing < 0)
+    throw new Error(`Invalid IPv6: ${ip}`);
   const groups = [
     ...left,
     ...Array(halves.length === 2 ? missing : 0).fill("0"),
@@ -49,22 +66,22 @@ export function ipToBigint(ip) {
   if (groups.length !== 8) throw new Error(`Invalid IPv6: ${ip}`);
   let n = 0n;
   for (const g of groups) {
+    // The whole group must be hex. parseInt("1zzz", 16) is 1.
+    if (!/^[0-9a-fA-F]{1,4}$/.test(g)) throw new Error(`Invalid IPv6 group: ${g}`);
     const v = parseInt(g, 16);
-    if (isNaN(v) || v < 0 || v > 0xffff) throw new Error(`Invalid IPv6 group: ${g}`);
     n = (n << 16n) | BigInt(v);
   }
   return BigInt.asUintN(128, n);
 }
 
 function expandEmbeddedIPv4(ip) {
-  // Handle "::ffff:192.0.2.1" style
+  // Handle "::ffff:192.0.2.1" style. Number("1e2") is 100, so use the IPv4 parser.
   const parts = ip.split(":");
   const last = parts[parts.length - 1];
   if (!last.includes(".")) return ip;
-  const v4parts = last.split(".").map(Number);
-  if (v4parts.length !== 4) throw new Error(`Invalid embedded IPv4: ${last}`);
-  const hi = (v4parts[0] * 256 + v4parts[1]).toString(16).padStart(4, "0");
-  const lo = (v4parts[2] * 256 + v4parts[3]).toString(16).padStart(4, "0");
+  const v4 = ipToNum(last);
+  const hi = ((v4 >>> 16) & 0xffff).toString(16).padStart(4, "0");
+  const lo = (v4 & 0xffff).toString(16).padStart(4, "0");
   return [...parts.slice(0, -1), hi, lo].join(":");
 }
 
@@ -140,9 +157,7 @@ export function parseCidr(input) {
   const idx = input.lastIndexOf("/");
   if (idx === -1) return { ip: compress(input), prefix: 128 };
   const ip = compress(input.slice(0, idx));
-  const prefix = parseInt(input.slice(idx + 1), 10);
-  if (isNaN(prefix) || prefix < 0 || prefix > 128)
-    throw new Error(`Invalid IPv6 prefix: ${input.slice(idx + 1)}`);
+  const prefix = parsePrefixToken(input.slice(idx + 1), 128);
   return { ip, prefix };
 }
 

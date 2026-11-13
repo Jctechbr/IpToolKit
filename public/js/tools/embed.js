@@ -28,7 +28,8 @@ export function init(container) {
       </div>
       <div class="field" id="custom-prefix-field" style="display:none">
         <label class="field__label" for="embed-custom">Custom /96 Prefix</label>
-        <input class="field__input" id="embed-custom" type="text" placeholder="2001:db8::/96" />
+        <input class="field__input" id="embed-custom" type="text" placeholder="2001:db8::/96"
+               value="${esc(params.prefix || "")}" />
       </div>
     </div>
     <hr class="divider" />
@@ -95,7 +96,7 @@ export function init(container) {
         <code>${esc(v4)}</code> → <code>${esc(v6)}</code>
         <button class="copy-btn" data-copy="${esc(v6)}" style="margin-left:8px">⎘ Copy</button>
       </div>`;
-      push("embed", { v4, v6, mode });
+      push("embed", { v4, v6, mode, prefix: customPrefix() });
     } catch (err) {
       result.innerHTML = `<div class="result-box --error">${esc(err.message)}</div>`;
     }
@@ -115,7 +116,7 @@ export function init(container) {
         result.innerHTML = `<div class="result-box --success">
           Extracted: <code>${esc(extracted.ipv4)}</code> (mode: <strong>${esc(MODES[extracted.mode]?.label ?? extracted.mode)}</strong>)
         </div>`;
-        push("embed", { v4: extracted.ipv4, v6, mode: extracted.mode });
+        push("embed", { v4: extracted.ipv4, v6, mode: extracted.mode, prefix: customPrefix() });
       } else {
         result.innerHTML = `<div class="result-box --warning">No recognized IPv4-in-IPv6 encoding found.</div>`;
       }

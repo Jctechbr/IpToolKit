@@ -47,6 +47,24 @@ export function maskToPrefix(mask) {
 }
 
 /**
+ * Prefix length must be the whole token: decimal, no sign, no leading zero.
+ * parseInt("0x18") is 0 and parseInt("24abc") is 24, so a leftover suffix
+ * would otherwise publish the wrong subnet.
+ * @param {string} token
+ * @param {number} max
+ * @returns {number}
+ */
+export function parsePrefixToken(token, max) {
+  const t = String(token).trim();
+  if (!/^(?:0|[1-9]\d{0,2})$/.test(t)) {
+    throw new Error(`Invalid prefix length: ${token}`);
+  }
+  const prefix = Number(t);
+  if (prefix > max) throw new Error(`Invalid prefix length: ${token}`);
+  return prefix;
+}
+
+/**
  * Parse CIDR `10.0.0.0/24`, `10.0.0.0 255.255.255.0`,
  * `10.0.0.0 0.0.0.255` (wildcard), or bare host `10.0.0.1`.
  * @returns {{ip:number, prefix:number}}
@@ -57,9 +75,7 @@ export function parseCidr(input) {
   const slashIdx = input.indexOf("/");
   if (slashIdx !== -1) {
     const ip = ipToNum(input.slice(0, slashIdx));
-    const prefix = parseInt(input.slice(slashIdx + 1), 10);
-    if (isNaN(prefix) || prefix < 0 || prefix > 32)
-      throw new Error(`Invalid prefix length: ${input.slice(slashIdx + 1)}`);
+    const prefix = parsePrefixToken(input.slice(slashIdx + 1), 32);
     return { ip, prefix };
   }
   // IP + mask or wildcard (space or tab separated)
@@ -68,7 +84,10 @@ export function parseCidr(input) {
     const ip = ipToNum(input.slice(0, spaceIdx));
     const maskStr = input.slice(spaceIdx).trim();
     const maskNum = ipToNum(maskStr);
-    // Detect wildcard mask vs netmask by checking if it looks inverted
+    // A low-bit contiguous mask is a wildcard (0.0.0.255 → /24).
+    // 0.0.0.0 stays a netmask (/0): it is also a host wildcard, and the
+    // default-route reading is the one we keep. 255.255.255.255 stays a
+    // netmask (/32) for the same reason (it is also the wildcard for /0).
     const isWildcard = (maskNum & 0x80000000) === 0 && maskNum !== 0 && ((maskNum + 1) & maskNum) === 0;
     const prefix = isWildcard ? maskToPrefix((~maskNum) >>> 0) : maskToPrefix(maskNum);
     return { ip, prefix };

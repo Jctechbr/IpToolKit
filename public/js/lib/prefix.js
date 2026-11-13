@@ -100,8 +100,11 @@ export function overlaps(a, b) {
  * Issues: "duplicate", "covered_by:<other>"
  *
  * Issue order matches a scan of the other entries from first to last.
- * Every covering prefix is reported, including repeated copies of one supernet.
+ * At most COVER_REPORT_LIMIT covering prefixes are listed. The rest are
+ * one "+N more" issue, so a paste of the same supernet cannot build an
+ * N×N report. Duplicates are still reported.
  */
+const COVER_REPORT_LIMIT = 32;
 export function classify(cidrs) {
   const parsed = cidrs.map((c) => parse(c));
   const results = parsed.map((p) => ({ cidr: p.cidr, issues: [] }));
@@ -177,13 +180,19 @@ export function classify(cidrs) {
 
     const issues = results[i].issues;
     let dupAdded = false;
+    let coversStored = 0;
+    let coversOmitted = 0;
     for (const e of events) {
       if (e.dup) {
         if (!dupAdded) { issues.push("duplicate"); dupAdded = true; }
-      } else {
+      } else if (coversStored < COVER_REPORT_LIMIT) {
         issues.push(`covered_by:${parsed[e.j].cidr}`);
+        coversStored++;
+      } else {
+        coversOmitted++;
       }
     }
+    if (coversOmitted > 0) issues.push(`+${coversOmitted} more`);
   }
   return results;
 }

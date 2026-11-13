@@ -16,12 +16,37 @@ import { parseCidr as parseV6, networkAddress as netV6, ipToBigint, bigintToIp }
 export function hostsToPrefixLen(hostCount, family) {
   const maxBits = family === "v4" ? 32 : 128;
   const n = BigInt(hostCount);
+  if (n <= 0n) throw new Error(`Invalid host count: ${hostCount}`);
   for (let p = maxBits; p >= 0; p--) {
     const total = 1n << BigInt(maxBits - p);
     const usable = family === "v4" && p < 31 ? total - 2n : total;
     if (usable >= n) return p;
   }
-  return 0;
+  throw new Error(`Host count ${hostCount} does not fit in IPv${family === "v4" ? "4" : "6"}`);
+}
+
+/** @param {string} size @param {"v4"|"v6"} family @returns {{prefixLen?:number, error?:string}} */
+function parseRequestedPrefix(size, family) {
+  const max = family === "v4" ? 32 : 128;
+  const t = String(size).trim();
+  if (!/^\/(?:0|[1-9]\d{0,2})$/.test(t)) return { error: `invalid prefix "${size}"` };
+  const prefixLen = Number(t.slice(1));
+  if (prefixLen > max) {
+    return { error: `prefix ${t} is outside 0–${max} for IPv${family === "v4" ? "4" : "6"}` };
+  }
+  return { prefixLen };
+}
+
+/** @param {number|string} size @returns {bigint|null} */
+function parseHostCount(size) {
+  if (typeof size === "number") {
+    if (!Number.isSafeInteger(size) || size <= 0) return null;
+    return BigInt(size);
+  }
+  const t = String(size).trim();
+  // Bound the digit run so a multi-megabyte paste cannot reach BigInt().
+  if (!/^[1-9]\d{0,39}$/.test(t)) return null;
+  return BigInt(t);
 }
 
 /**
@@ -51,19 +76,26 @@ export function allocate(poolCidr, requests) {
   // Parse each request and determine needed prefix length
   const parsed = requests.map((req, idx) => {
     let prefixLen;
-    if (typeof req.size === "string" && req.size.startsWith("/")) {
-      prefixLen = parseInt(req.size.slice(1), 10);
-      if (isNaN(prefixLen)) {
-        errors.push(`Request ${idx + 1} (${req.label}): invalid prefix "${req.size}"`);
+    const sizeText = typeof req.size === "string" ? req.size.trim() : req.size;
+    if (typeof sizeText === "string" && sizeText.startsWith("/")) {
+      const parsedPrefix = parseRequestedPrefix(sizeText, family);
+      if (parsedPrefix.error) {
+        errors.push(`Request ${idx + 1} (${req.label}): ${parsedPrefix.error}`);
         return null;
       }
+      prefixLen = parsedPrefix.prefixLen;
     } else {
-      const hosts = parseInt(req.size, 10);
-      if (isNaN(hosts) || hosts <= 0) {
+      const hosts = parseHostCount(sizeText);
+      if (hosts === null) {
         errors.push(`Request ${idx + 1} (${req.label}): invalid host count "${req.size}"`);
         return null;
       }
-      prefixLen = hostsToPrefixLen(hosts, family);
+      try {
+        prefixLen = hostsToPrefixLen(hosts, family);
+      } catch (err) {
+        errors.push(`Request ${idx + 1} (${req.label}): ${err.message}`);
+        return null;
+      }
     }
     return { label: req.label, prefixLen, origIdx: idx };
   }).filter(Boolean);

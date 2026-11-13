@@ -98,4 +98,20 @@ describe("classify (overlap/duplicate detection)", () => {
     const result = classify(["10.0.0.0/24", "10.0.1.0/24"]);
     assert.ok(result.every(r => r.issues.length === 0));
   });
+  it("caps repeated covering prefixes and reports the remainder", () => {
+    const supernets = Array.from({ length: 40 }, () => "10.0.0.0/8");
+    const result = classify([...supernets, "10.1.0.0/24"]);
+    const covered = result.find(r => r.cidr === "10.1.0.0/24");
+    const listed = covered.issues.filter(i => i.startsWith("covered_by:"));
+    assert.equal(listed.length, 32);
+    assert.equal(covered.issues.at(-1), "+8 more");
+    assert.ok(result.filter(r => r.cidr === "10.0.0.0/8").every(r => r.issues.includes("duplicate")));
+  });
+  it("does not add a remainder line when the cover count is at the cap", () => {
+    const supernets = Array.from({ length: 32 }, () => "10.0.0.0/8");
+    const result = classify([...supernets, "10.1.0.0/24"]);
+    const covered = result.find(r => r.cidr === "10.1.0.0/24");
+    assert.equal(covered.issues.length, 32);
+    assert.ok(covered.issues.every(i => i.startsWith("covered_by:")));
+  });
 });

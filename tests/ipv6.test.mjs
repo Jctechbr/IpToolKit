@@ -106,6 +106,30 @@ describe("parseCidr", () => {
   it("bare address = /128", () => {
     assert.equal(parseCidr("::1").prefix, 128);
   });
+  it("rejects a prefix token with trailing junk", () => {
+    assert.throws(() => parseCidr("2001:db8::/32abc"), /prefix/i);
+  });
+});
+
+describe("strict textual form", () => {
+  it("rejects a hextet with trailing junk", () => {
+    assert.throws(() => ipToBigint("2001:db8::1zzz"), /group/i);
+  });
+  it("strips a zone id without changing the address", () => {
+    assert.equal(ipToBigint("fe80::1%eth0"), ipToBigint("fe80::1"));
+  });
+  it("rejects a malformed zone id", () => {
+    assert.throws(() => ipToBigint("fe80::1%"), /zone/i);
+  });
+  it("rejects an embedded IPv4 with scientific notation", () => {
+    assert.throws(() => ipToBigint("::ffff:192.0.2.1e2"), /IPv4/i);
+  });
+  it("rejects an embedded IPv4 octet with a leading zero", () => {
+    assert.throws(() => ipToBigint("::ffff:192.0.2.01"), /IPv4/i);
+  });
+  it("rejects too many groups instead of throwing RangeError", () => {
+    assert.throws(() => ipToBigint("2001:db8:1:2:3:4:5:6::7"), /Invalid IPv6/);
+  });
 });
 
 describe("normalize", () => {

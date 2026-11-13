@@ -3,6 +3,27 @@
  * Format: #<toolId>?key=val&key2=val2
  */
 
+/** A shared link should not be able to stall the main thread. */
+const MAX_HASH_LENGTH = 1_000_000;
+
+function decodeComponent(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return null;
+  }
+}
+
+function assignParam(params, key, value) {
+  // defineProperty does not invoke the __proto__ setter.
+  Object.defineProperty(params, key, {
+    value,
+    enumerable: true,
+    writable: true,
+    configurable: true,
+  });
+}
+
 /**
  * Encode tool state to a hash string.
  * @param {string} toolId
@@ -24,6 +45,7 @@ export function encode(toolId, params) {
  */
 export function decode(hash) {
   if (!hash || hash === "#") return { toolId: "", params: {} };
+  if (hash.length > MAX_HASH_LENGTH) return { toolId: "", params: {} };
   const raw = hash.startsWith("#") ? hash.slice(1) : hash;
   const qIdx = raw.indexOf("?");
   if (qIdx === -1) return { toolId: raw, params: {} };
@@ -33,11 +55,12 @@ export function decode(hash) {
   for (const pair of qs.split("&")) {
     if (!pair) continue;
     const eIdx = pair.indexOf("=");
-    if (eIdx === -1) {
-      params[decodeURIComponent(pair)] = "";
-    } else {
-      params[decodeURIComponent(pair.slice(0, eIdx))] = decodeURIComponent(pair.slice(eIdx + 1));
-    }
+    const rawKey = eIdx === -1 ? pair : pair.slice(0, eIdx);
+    const rawVal = eIdx === -1 ? "" : pair.slice(eIdx + 1);
+    const key = decodeComponent(rawKey);
+    const val = decodeComponent(rawVal);
+    if (key === null || val === null || key === "") continue;
+    assignParam(params, key, val);
   }
   return { toolId, params };
 }

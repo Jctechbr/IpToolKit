@@ -90,6 +90,20 @@ describe("parseTable", () => {
     );
   });
 
+  it("throws on an invalid next hop", () => {
+    assert.throws(
+      () => parseTable("10.0.0.0/8 via 999.999.999.999"),
+      /Invalid/i
+    );
+  });
+
+  it("throws on a next hop with a leading zero", () => {
+    assert.throws(
+      () => parseTable("10.0.0.0/8 via 192.168.001.1"),
+      /Invalid/i
+    );
+  });
+
   it("handles mixed comment, blank, and valid lines together", () => {
     const text = `
 # Full routing table

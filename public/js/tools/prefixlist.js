@@ -150,10 +150,15 @@ export function init(container) {
 
   function downloadText(text, filename, mime) {
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([text], { type: mime }));
+    const url = URL.createObjectURL(new Blob([text], { type: mime }));
+    a.href = url;
     a.download = filename;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(a.href);
+    a.remove();
+    // Revoke after the browser has started the download. Immediate revoke
+    // cancels the save in some browsers.
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
   }
 
   container.querySelector("#pl-parse").addEventListener("click", () => {

@@ -54,6 +54,27 @@ describe("decode", () => {
     const r = decode(h);
     assert.equal(r.params.cidr, "10.0.0.0/24");
   });
+
+  it("drops a malformed percent-encoding instead of throwing", () => {
+    const r = decode("#calc?q=%&ip=10.0.0.0");
+    assert.equal(r.toolId, "calc");
+    assert.equal(r.params.q, undefined);
+    assert.equal(r.params.ip, "10.0.0.0");
+  });
+
+  it("stores __proto__ as an own key and does not pollute Object.prototype", () => {
+    const r = decode("#calc?__proto__=x&q=1");
+    assert.equal(r.params.q, "1");
+    assert.equal(Object.hasOwn(r.params, "__proto__"), true);
+    assert.equal(r.params["__proto__"], "x");
+    assert.equal(Object.prototype.x, undefined);
+  });
+
+  it("rejects an oversized hash", () => {
+    const r = decode("#" + "a".repeat(1_000_001));
+    assert.equal(r.toolId, "");
+    assert.deepEqual(r.params, {});
+  });
 });
 
 describe("round-trip", () => {
