@@ -20,6 +20,12 @@ const TOOLS = {
 
 const DEFAULT_TOOL = "calc";
 
+// Start every tool with the shell. import() dedupes, so a later tab click
+// waits on this request instead of beginning a new round trip.
+for (const load of Object.values(TOOLS)) {
+  load().catch(() => {});
+}
+
 // ---- Router ----------------------------------------------------------------
 
 // Bumped on every hash change so a slow import cannot paint over a newer tab.
@@ -36,14 +42,21 @@ async function route() {
     btn.setAttribute("aria-selected", selected ? "true" : "false");
   });
 
-  // Load + init tool
+  // Load + init tool. A cached module returns immediately; a cold one
+  // used to leave the previous tool on screen for the whole wait.
   const view = document.getElementById("view");
+  const slow = setTimeout(() => {
+    if (seq !== routeSeq) return;
+    view.innerHTML = `<div class="empty-state">Loading…</div>`;
+  }, 120);
   try {
     const mod = await TOOLS[id]();
+    clearTimeout(slow);
     if (seq !== routeSeq) return;
     view.innerHTML = "";
     mod.init(view);
   } catch (err) {
+    clearTimeout(slow);
     if (seq !== routeSeq) return;
     view.innerHTML = `<div class="result-box --error" style="margin:24px">
       Failed to load tool: ${esc(err.message)}

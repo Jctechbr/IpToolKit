@@ -22,15 +22,32 @@
   <link rel="stylesheet" href="css/tokens.css" />
   <link rel="stylesheet" href="css/app.css" />
 
-  <!-- Default tool graph, fetched in parallel with the shell instead of
-       after app.js discovers the hash. URLs must match the import specifiers. -->
-  <link rel="modulepreload" href="js/app.js?v=4" />
+  <!-- Every module the menus import, started with the HTML.
+       A tab click otherwise waits for the tool file, then again for its
+       libraries. URLs must match the import specifiers, including ?v=. -->
+  <link rel="modulepreload" href="js/app.js?v=5" />
   <link rel="modulepreload" href="js/lib/hash_state.js" />
-  <link rel="modulepreload" href="js/tools/calculator.js?v=2" />
   <link rel="modulepreload" href="js/lib/ipv4.js" />
   <link rel="modulepreload" href="js/lib/ipv6.js" />
   <link rel="modulepreload" href="js/lib/rfc.js" />
   <link rel="modulepreload" href="js/lib/reverse_dns.js" />
+  <link rel="modulepreload" href="js/lib/embed.js" />
+  <link rel="modulepreload" href="js/lib/prefix.js" />
+  <link rel="modulepreload" href="js/lib/aggregate.js" />
+  <link rel="modulepreload" href="js/lib/allocate.js" />
+  <link rel="modulepreload" href="js/lib/routes.js" />
+  <link rel="modulepreload" href="js/tools/calculator.js?v=2" />
+  <link rel="modulepreload" href="js/tools/embed.js?v=2" />
+  <link rel="modulepreload" href="js/tools/prefixlist.js?v=2" />
+  <link rel="modulepreload" href="js/tools/allocate.js?v=2" />
+  <link rel="modulepreload" href="js/tools/option43.js?v=2" />
+  <link rel="modulepreload" href="js/tools/aruba_dhcp.js?v=2" />
+  <link rel="modulepreload" href="js/tools/tree.js?v=2" />
+  <link rel="modulepreload" href="js/tools/diffs.js?v=2" />
+  <link rel="modulepreload" href="js/tools/routes.js?v=2" />
+  <link rel="modulepreload" href="js/tools/planner.js?v=2" />
+  <link rel="modulepreload" href="js/tools/patterns.js?v=2" />
+  <link rel="modulepreload" href="js/tools/practice.js?v=2" />
 
   <meta name="description" content="Self-hosted IPv4/IPv6 network calculator: subnet, prefix list, allocation, embedding, routes, planning and more." />
 </head>
@@ -143,6 +160,6 @@
   <div class="empty-state">Loading…</div>
 </main>
 
-<script type="module" src="js/app.js?v=4"></script>
+<script type="module" src="js/app.js?v=5"></script>
 </body>
 </html>
