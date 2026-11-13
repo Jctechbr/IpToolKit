@@ -2,8 +2,8 @@
  * CIDR prefix validation, normalization, sorting, containment, and overlap detection.
  * Works for both IPv4 and IPv6.
  */
-import { parseCidr as parseV4, networkAddress as netV4, ipToNum, numToIp, prefixToMask as maskV4 } from "./ipv4.js";
-import { parseCidr as parseV6, networkAddress as netV6, ipToBigint, prefixToMask as maskV6, bigintToIp } from "./ipv6.js";
+import { parseCidr as parseV4, networkAddress as netV4, numToIp } from "./ipv4.js";
+import { parseCidr as parseV6, networkAddress as netV6, ipToBigint, bigintToIp } from "./ipv6.js";
 
 /** Detect address family from a CIDR string. @returns {"v4"|"v6"} */
 export function family(cidr) {
@@ -98,19 +98,90 @@ export function overlaps(a, b) {
  * Classify relationships in a list of CIDRs.
  * Returns array of {cidr, issues} where issues is an array of strings.
  * Issues: "duplicate", "covered_by:<other>"
+ *
+ * Issue order matches a scan of the other entries from first to last.
+ * Every covering prefix is reported, including repeated copies of one supernet.
  */
 export function classify(cidrs) {
-  const parsed = cidrs.map((c) => parse(normalize(c)));
+  const parsed = cidrs.map((c) => parse(c));
   const results = parsed.map((p) => ({ cidr: p.cidr, issues: [] }));
+  const n = parsed.length;
+  if (n < 2) return results;
 
-  for (let i = 0; i < parsed.length; i++) {
-    for (let j = 0; j < parsed.length; j++) {
-      if (i === j) continue;
-      if (parsed[i].cidr === parsed[j].cidr) {
-        if (!results[i].issues.includes("duplicate"))
-          results[i].issues.push("duplicate");
-      } else if (contains(parsed[j].cidr, parsed[i].cidr)) {
-        results[i].issues.push(`covered_by:${parsed[j].cidr}`);
+  const firstIdx = new Map();
+  const secondIdx = new Map();
+  for (let i = 0; i < n; i++) {
+    const key = parsed[i].cidr;
+    if (!firstIdx.has(key)) firstIdx.set(key, i);
+    else if (!secondIdx.has(key)) secondIdx.set(key, i);
+  }
+
+  const v4 = Array.from({ length: 33 }, () => []);
+  const v6 = Array.from({ length: 129 }, () => []);
+  for (let i = 0; i < n; i++) {
+    (parsed[i].family === "v4" ? v4 : v6)[parsed[i].prefix].push(i);
+  }
+  const sortGroup = (g) => {
+    if (g.length < 2) return;
+    g.sort((ia, ib) => {
+      const aa = parsed[ia].addr;
+      const bb = parsed[ib].addr;
+      if (aa < bb) return -1;
+      if (aa > bb) return 1;
+      return ia - ib;
+    });
+  };
+  const v4Lens = [];
+  const v6Lens = [];
+  for (let len = 0; len <= 32; len++) {
+    if (v4[len].length) { sortGroup(v4[len]); v4Lens.push(len); }
+  }
+  for (let len = 0; len <= 128; len++) {
+    if (v6[len].length) { sortGroup(v6[len]); v6Lens.push(len); }
+  }
+
+  const covers = [];
+  for (let i = 0; i < n; i++) {
+    const p = parsed[i];
+    const groups = p.family === "v4" ? v4 : v6;
+    const lens = p.family === "v4" ? v4Lens : v6Lens;
+    const bits = p.family === "v4" ? 32 : 128;
+    covers.length = 0;
+    for (let k = 0; k < lens.length; k++) {
+      const len = lens[k];
+      if (len >= p.prefix) break;
+      const g = groups[len];
+      const shift = BigInt(bits - len);
+      const net = (p.addr >> shift) << shift;
+      let lo = 0;
+      let hi = g.length;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (parsed[g[mid]].addr < net) lo = mid + 1;
+        else hi = mid;
+      }
+      while (lo < g.length && parsed[g[lo]].addr === net) {
+        covers.push(g[lo]);
+        lo++;
+      }
+    }
+
+    const events = [];
+    for (let c = 0; c < covers.length; c++) events.push({ j: covers[c], dup: false });
+    const second = secondIdx.get(p.cidr);
+    if (second !== undefined) {
+      const first = firstIdx.get(p.cidr);
+      events.push({ j: i === first ? second : first, dup: true });
+    }
+    if (events.length > 1) events.sort((a, b) => a.j - b.j);
+
+    const issues = results[i].issues;
+    let dupAdded = false;
+    for (const e of events) {
+      if (e.dup) {
+        if (!dupAdded) { issues.push("duplicate"); dupAdded = true; }
+      } else {
+        issues.push(`covered_by:${parsed[e.j].cidr}`);
       }
     }
   }

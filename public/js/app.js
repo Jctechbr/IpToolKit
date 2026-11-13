@@ -22,7 +22,11 @@ const DEFAULT_TOOL = "calc";
 
 // ---- Router ----------------------------------------------------------------
 
+// Bumped on every hash change so a slow import cannot paint over a newer tab.
+let routeSeq = 0;
+
 async function route() {
+  const seq = ++routeSeq;
   const { toolId } = decode(location.hash);
   const id = TOOLS[toolId] ? toolId : DEFAULT_TOOL;
 
@@ -36,9 +40,11 @@ async function route() {
   const view = document.getElementById("view");
   try {
     const mod = await TOOLS[id]();
+    if (seq !== routeSeq) return;
     view.innerHTML = "";
     mod.init(view);
   } catch (err) {
+    if (seq !== routeSeq) return;
     view.innerHTML = `<div class="result-box --error" style="margin:24px">
       Failed to load tool: ${esc(err.message)}
     </div>`;

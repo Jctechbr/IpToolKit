@@ -1,10 +1,42 @@
 /**
  * Supernet aggregation: merge contiguous sibling prefixes into their common parent.
  * Repeats until no further merges are possible.
+ *
+ * Prefixes are bucketed by family and length so each pass is a sort plus a
+ * linear sibling check. A different-length prefix sitting between two siblings
+ * does not block the merge. Covered prefixes are not removed.
  */
-import { parse, areSiblings } from "./prefix.js";
-import { numToIp, prefixToMask as maskV4 } from "./ipv4.js";
-import { bigintToIp, prefixToMask as maskV6 } from "./ipv6.js";
+import { parse } from "./prefix.js";
+import { numToIp } from "./ipv4.js";
+import { bigintToIp } from "./ipv6.js";
+
+function compare(a, b) {
+  if (a.family !== b.family) return a.family === "v4" ? -1 : 1;
+  if (a.addr < b.addr) return -1;
+  if (a.addr > b.addr) return 1;
+  return a.prefix - b.prefix;
+}
+
+/**
+ * Parent of two same-length prefixes, or null when they are not an aligned pair.
+ * `lower` must be the one with the smaller network address.
+ */
+function siblingParent(lower, upper) {
+  if (lower.family !== upper.family || lower.prefix !== upper.prefix || lower.prefix === 0) {
+    return null;
+  }
+  const bits = lower.family === "v4" ? 32n : 128n;
+  const shift = bits - BigInt(lower.prefix);
+  const lowNet = lower.addr >> shift;
+  const upNet = upper.addr >> shift;
+  if (lowNet !== (upNet ^ 1n) || (lowNet & 1n) !== 0n) return null;
+  const parentAddr = (lowNet >> 1n) << 1n << shift;
+  const prefix = lower.prefix - 1;
+  const cidr = lower.family === "v4"
+    ? `${numToIp(Number(parentAddr))}/${prefix}`
+    : `${bigintToIp(parentAddr)}/${prefix}`;
+  return { family: lower.family, addr: parentAddr, prefix, cidr };
+}
 
 /**
  * Given a list of CIDR strings (same or mixed families), return the minimally
@@ -13,59 +45,42 @@ import { bigintToIp, prefixToMask as maskV6 } from "./ipv6.js";
  * @returns {string[]}
  */
 export function aggregate(cidrs) {
-  // Work with parsed objects; keep family-separated lists for merging
   let items = cidrs.map((c) => parse(c.trim()));
 
+  // Each pass shortens at least one prefix by one bit, so this cannot exceed
+  // 32 rounds for IPv4 or 128 for IPv6.
   let changed = true;
   while (changed) {
     changed = false;
-    // Sort so siblings are adjacent
-    items.sort((a, b) => {
-      if (a.family !== b.family) return a.family === "v4" ? -1 : 1;
-      if (a.addr < b.addr) return -1;
-      if (a.addr > b.addr) return 1;
-      return a.prefix - b.prefix;
-    });
+    const v4 = Array.from({ length: 33 }, () => []);
+    const v6 = Array.from({ length: 129 }, () => []);
+    for (const item of items) {
+      (item.family === "v4" ? v4 : v6)[item.prefix].push(item);
+    }
 
     const next = [];
-    const used = new Set();
-
-    for (let i = 0; i < items.length; i++) {
-      if (used.has(i)) continue;
-      let merged = false;
-      for (let j = i + 1; j < items.length; j++) {
-        if (used.has(j)) continue;
-        if (items[i].family !== items[j].family) break; // different family, skip
-        if (items[i].prefix !== items[j].prefix) continue; // different prefix length
-        if (areSiblings(items[i].cidr, items[j].cidr)) {
-          // Merge: compute parent address (clear the last prefix bit)
-          const newPrefix = items[i].prefix - 1;
-          const bits = items[i].family === "v4" ? 32n : 128n;
-          const shift = bits - BigInt(items[i].prefix);
-          // Parent network = zero out the last bit of the host part
-          const parentAddr = (items[i].addr >> shift) >> 1n << 1n << shift;
-          const parentCidr = items[i].family === "v4"
-            ? `${numToIp(Number(parentAddr))}/${newPrefix}`
-            : `${bigintToIp(parentAddr)}/${newPrefix}`;
-          next.push(parse(parentCidr));
-          used.add(i);
-          used.add(j);
-          changed = true;
-          merged = true;
-          break;
-        }
+    const fold = (bucket) => {
+      if (bucket.length > 1) {
+        bucket.sort((a, b) => (a.addr < b.addr ? -1 : a.addr > b.addr ? 1 : 0));
       }
-      if (!merged) next.push(items[i]);
-    }
+      for (let i = 0; i < bucket.length; i++) {
+        if (i + 1 < bucket.length) {
+          const parent = siblingParent(bucket[i], bucket[i + 1]);
+          if (parent) {
+            next.push(parent);
+            changed = true;
+            i++;
+            continue;
+          }
+        }
+        next.push(bucket[i]);
+      }
+    };
+    for (const bucket of v4) if (bucket.length) fold(bucket);
+    for (const bucket of v6) if (bucket.length) fold(bucket);
     items = next;
   }
 
-  // Final sort and return CIDRs
-  items.sort((a, b) => {
-    if (a.family !== b.family) return a.family === "v4" ? -1 : 1;
-    if (a.addr < b.addr) return -1;
-    if (a.addr > b.addr) return 1;
-    return a.prefix - b.prefix;
-  });
+  items.sort(compare);
   return items.map((p) => p.cidr);
 }
